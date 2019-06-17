@@ -7,6 +7,13 @@ nomberOfboxes = 19
 Move = 1
 field = dataNP(nomberOfboxes)
 butfield = dataNN(nomberOfboxes)
+
+
+
+
+
+
+
 def CreateField(can, nomberOfboxes, cell_size):
 	global butfield
 	k = 0
@@ -18,7 +25,20 @@ def CreateField(can, nomberOfboxes, cell_size):
 			print(can)
 			butfield[w][h] = Button(can, bd = 5, relief = GROOVE, text = " ", fg ='red', command=lambda w = w, h = h: buttonf(butfield, w, h), width=2, height=1)
 			butfield[w][h].grid(row = w, column = h)
-	return can
+			bfield = field
+	return can, butfield, bfield
+
+
+
+
+
+
+
+
+
+
+
+
 
 def buttonf(butfield, w, h):
 	global Move
