@@ -25,8 +25,7 @@ def CreateField(can, nomberOfboxes, cell_size):
 			print(can)
 			butfield[w][h] = Button(can, bd = 5, relief = GROOVE, text = " ", fg ='red', command=lambda w = w, h = h: buttonf(butfield, w, h), width=2, height=1)
 			butfield[w][h].grid(row = w, column = h)
-			bfield = field
-	return can, butfield, bfield
+	return can
 
 
 
