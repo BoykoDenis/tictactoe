@@ -8,8 +8,8 @@ root = env.render()
 for epoch in range (0, 2):
 	env.reset()
 	for ev in range (0, 361):
-		print("epoch: ", epoch)
-		print("evo-step: ", ev)
+		#print("epoch: ", epoch)
+		#print("evo-step: ", ev)
 		action = random.choice(random.choice(env.action_space))
 		if action == None:
 			while action is None:
@@ -18,7 +18,8 @@ for epoch in range (0, 2):
 		a, b = action		
 		env.action_space[a][b] = None
 		observation, reword, done, info = env.step(action)
-		print("step output: ", observation, done, reword, info)
+		#print("step output: ", observation, done, reword, info)
 		if done == True:
-			print("done")
+			pass
+			#print("done")
 		root.update()
