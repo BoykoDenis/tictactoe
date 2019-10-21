@@ -1,63 +1,62 @@
-import gym
-from gym import error, spaces, utils
-from gym.utils import seeding
-from tkinter import Canvas, Button, Grid,
+from tkinter import Canvas, Button
+from tkinter import Tk
 import numpy as np
+#import sys
+#import pdb
 
 
-class TicTacToeEnv(gym.Env):
+class TicTacToeEnv():
 
 	metadata = {'render.modes' : ['human']}
-	ACTIONS = []
-	for x in range(0,19):
-		for y in range(0,19):
-			ACTIONS.append(str(x)+str(y))
-	print(ACTIONS)
 
 
-	def __init__(self, nb, dw, dh, bfield):
-		self.nb = 19 #nomber of cells in tictactoe fiel
+	def __init__(self, nb, dw, dh):
+		self.nb = nb #nomber of cells in tictactoe fiel
 		self.dw = dw #display width
 		self.dh = dh #display hight
-		self.cell_size = int(self.dw/self.nb) # size of 1 cell
-		self.root = tkinter.Tk() 
-		self.can = tkinter.Canvas(self.root, width=self.dw, height=self.dh)
-		self.bfield = bfield
+		self.cell_size = int(self.dw/self.nb) # size of 1 cell  
 		self.Move = 1
-		self.field = dataNP(self.nb)
-		self.butfield = dataNN(self.nb)
+		self.field = TicTacToeEnv.dataNP(self.nb)
+		self.butfield = TicTacToeEnv.dataNN(self.nb)
+		self.reword = 0
+		#self.Q = np.zeros(19, 19)
+		self.action_space = TicTacToeEnv.dataNN(self.nb)
+		self.count1 = 0
+		self.count2 = 0
+		self.maxcount = 0 #debug
+		self.eteration = 0 #debug 
 		self.root = Tk()
 		self.can = Canvas(self.root, width=self.dw, height=self.dh)
-		self.reword = 0
+		self.can.pack() 
 
+		
 
-
-
-
-
-	def step(self, action):
-		w, h = action
-		done, count1, count2 = WinCheck(self.field, self.butfield, self.Move, w, h)
+	def step(self, action, Gametype):
 		x, y = action
 		self.field[x][y] = self.Move
-		buttonf(x, y)
-		observation_space = self.field
-		info = ""
+		done, count1, count2 = TicTacToeEnv.WinCheck(self, self.field, self.butfield, self.Move, x, y)
+		#print("counts: ", count1, count2)
+		TicTacToeEnv.buttonf(self, x, y)
+		self.observation_space = self.field
+		info = "some info"
+		if count1 == 1:
+			self.reword = -0.1
 		if count1 == 2:
-			self.reword += 3
-		elif count1 == 3:
-			self.reword += 5
-		elif count1 ==4:
-			self.reword += 7
-		elif count1 > 4:
-			self.reword = 10
-		elif count2 == 3:
-			self.reword -= 4
-		elif count2 == 4:
-			self.reword -= 8
-		elif count2 > 4:
-			self.reword -= 100
-		return observation_space, reward, done, info
+			self.reword = 0.1
+		if count1 == 3:
+			self.reword = 0.2
+		if count1 ==4:
+			self.reword = 0.3
+		if count1 > 4:
+			self.reword = 1
+		if count2 == 3:
+			self.reword = -0.2
+		if count2 == 4:
+			self.reword = -0.3
+		if count2 > 4:
+			self.reword = -1
+		print("reword in gym", self.reword)
+		return self.observation_space, self.reword, done, info
 
 
 
@@ -65,23 +64,27 @@ class TicTacToeEnv(gym.Env):
 
 
 	def reset(self):
-		self.field = dataNP(self.nb)
-		for i in self.butfield:
-			i.configure(text = " ", 
-						state = "enabled", 
-						bg = "white", 
-						fg = "red")
+		print("reseting...")
+		self.field = TicTacToeEnv.dataNP(self.nb)
+		for x in range(0,19):
+			for y in range(0,19):
+				self.butfield[x][y].configure(text = " ", 
+											  state = "active", 
+											  bg = "white", 
+											  fg = "red")
+				#self.root.update()
+		#print("reseted")
+		return self.root
 
 
 
 
 
 
-	def render(self, mode = 'human', close = False):
-		CreateField() 
-		mainloop()# for tkinter visual rendering all other fonctions should be cald from render method
-		# make visualisation of bots moves, by configing buttons 
-
+	def render(self):
+		self.root = TicTacToeEnv.CreateField(self) 
+		
+		
 
 
 
@@ -90,21 +93,21 @@ class TicTacToeEnv(gym.Env):
 
 
 	def CreateField(self):
+		TicTacToeEnv.DisplaySetup(self.dw, self.dh, self.root)
 		for w in range(0, self.nb):
-			can.columnconfigure(w, minsize = self.cell_size)
-			can.rowconfigure(w, minsize = self.cell_size)
+			self.can.columnconfigure(w, minsize = self.cell_size)
+			self.can.rowconfigure(w, minsize = self.cell_size)
 			for h in range(0, self.nb):
-				print("creating a button field...")
-				print(self.can)
 				self.butfield[w][h] = Button(self.can, bd = 5, 
-												  relief = GROOVE, 
+												  relief = "groove", 
 												  text = " ", 
 												  fg ='red', 
-												  command=lambda w = w, h = h: buttonf(self.butfield, w, h), 
+												  command=lambda w = w, h = h: TicTacToeEnv.buttonf(self, w, h), 
 												  width=2, 
 												  height=1)
 				self.butfield[w][h].grid(row = w, 
 										 column = h)
+		return self.root
 
 
 
@@ -116,25 +119,25 @@ class TicTacToeEnv(gym.Env):
 
 
 	def buttonf(self, w, h):
+		print(self.Move)
 		if self.Move == 1:
 			self.butfield[w][h].configure(text = "x", 
 										  state = "disabled", 
 										  bg = "green", 
 										  fg = "red")
 			self.field[w, h] = self.Move
-			print(self.field)
+			done, count1, count2 = TicTacToeEnv.WinCheck(self, self.field, self.butfield, self.Move, w, h)
 			self.Move = -1
 		elif self.Move == -1:
 			self.butfield[w][h].configure(text = "o", 
 										  state = "disabled", 
 										  bg = "blue", 
 										  fg = "red")
-			self.field[w, h] = Move
-			print(self.field)
+			self.field[w, h] = self.Move
+			done, count1, count2 = TicTacToeEnv.WinCheck(self, self.field, self.butfield, self.Move, w, h)
 			self.Move = 1
-		win = WinCheck(self.field, self.butfield, self.Move*-1, w, h)
-		if win != None:
-			print("hura player {} won!!!".format(Move))
+		t = 0
+		
 
 
 
@@ -144,44 +147,47 @@ class TicTacToeEnv(gym.Env):
 
 
 
-
-
-	def WinCheck(field, butfield, Move, w, h):
+	def WinCheck(self, field, butfield, Move, w, h):
 		v = [-1, 1]
-		count = 0
 		for x in range (-1, 2):
 			for y in range (-1, 2):
-				count = 0
+				count = 1
+				#print("firstC", count)
 				stack = []
 				stack.append(butfield[w][h])
 				for i in v:
-					if x == 0 and y == 0: # bcs x==0 and y==0 is checking for the same cell so its reason for this if
+					if x == 0 and y == 0:
 						continue
 					try:
 						wa = w
 						ha = h
-						while field[wa][ha] == field[wa+x*i][ha+y*i] and count < 4:
+						while field[wa][ha] == field[wa+x*i][ha+y*i] and wa+x*i > -1 and wa+x*i < 19 and ha+y*i > -1 and ha+y*i < 19:
 							wa, ha = wa + x*i, ha + y*i
 							stack.append(butfield[wa][ha])
 							count += 1
-							if count >= 4:
-								if field[w][h] == 1:
-									count1 = count
-								else:
-									count2 == count
-								print("win")
+							#print("secondly", count)
+							if field[w][h] == 1:
+								self.count1 = count
+								#print("WC",self.count1)
+							if field[w][h] == -1:
+								self.count2 = count
+								#print("WC", self.count2)
+							if count >= 5:
+								#print("165count", count)
+								#pdb.set_trace()
 								while True:
-									stack.pop().config(bg = "red", 
-													   fg = "blue")
-								return True, count1, count2
-							else:
-								return False, count1, count2
+									stack.pop().config(bg = "red", fg = "blue")
+									if len(stack) == 0:
+										return True, self.count1, self.count2
+						if self.count1 is False:
+							self.count1 = 0
+							#print("count 0") 
+						if self.count2 is False:
+							self.count2 = 0
+							#print("count 0")
 					except:
-						continue
-
-
-
-
+						pass
+		return False, self.count1, self.count2
 
 
 
@@ -204,3 +210,8 @@ class TicTacToeEnv(gym.Env):
 		nomberOfboxes = nomberOfboxes*nomberOfboxes
 		field = [0]*nomberOfboxes
 		return field
+
+	def DisplaySetup(display_width, display_hight, root):
+		display_size = "{}x{}".format(display_width, display_hight)
+		root.geometry(display_size)
+	
